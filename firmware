@@ -1,0 +1,115 @@
+
+  // nRF24
+  if (radio.begin()) {
+    radio.setDataRate(RF24_250KBPS);
+    radio.setPALevel(RF24_PA_LOW);
+    radio.setAutoAck(true);
+    radio.setRetries(3, 5);
+    radio.openReadingPipe(1, 0xF0F0F0F0E1LL);
+    radio.openWritingPipe(0xF0F0F0F0D2LL);
+    Serial.println("nRF24 OK");
+  } else {
+    Serial.println("nRF24 not found");
+  }
+
+  // CC1101 â€” init deferred until entering that screen
+
+  // IR
+  IrSender.begin(IR_TX_PIN);
+
+  setLED(false, false, true);  // Blue before splash
+
+  // Boot splash animation
+  doBootSplash();
+
+  // Transition to main menu
+  menuReady = false;
+  currentScreen = SCR_MENU;
+  setLED(false, true, false);
+  drawMainMenu();
+  drawMenuGoblinAnim(0);
+}
+
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+//  Loop
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+void loop() {
+  tickAnim();
+  int16_t tx = 0, ty = 0;
+  bool touched = getTouch(tx, ty);
+
+  switch (currentScreen) {
+
+    // â”€â”€ Menu â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    case SCR_MENU: {
+      int hover = touched ? menuHitTest(tx, ty) : -1;
+      // Only redraw on touch to avoid flicker
+      static int lastHover = -99;
+      if (animFrame % 4 == 0) drawMenuGoblinAnim(animFrame);
+      if (hover != lastHover) {
+        drawMainMenu(hover);
+        drawMenuGoblinAnim(animFrame);
+        lastHover = hover;
+      }
+      if (touched && hover >= 0) {
+        delay(120);
+        menuReady = false;
+        currentScreen = menuEntries[hover].target;
+        switch (currentScreen) {
+          case SCR_RFID:   enterRFID();   break;
+          case SCR_CC1101: enterCC1101(); break;
+          case SCR_NRF24:  enterNRF24();  break;
+          case SCR_IR:     enterIR();     break;
+          default: break;
+        }
+      }
+      break;
+    }
+
+    // â”€â”€ RFID â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    case SCR_RFID:
+      if (animFrame % 2 == 0) animateRFID(animFrame);
+      processRFID();
+      if (touched && backTouched(tx, ty)) {
+        menuReady = false; currentScreen = SCR_MENU;
+        drawMainMenu(); drawMenuGoblinAnim(0);
+      }
+      break;
+
+    // â”€â”€ CC1101 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    case SCR_CC1101:
+      if (animFrame % 2 == 0) animateCC1101(animFrame);
+      processCC1101(tx, ty, touched);
+      if (touched && backTouched(tx, ty)) {
+        menuReady = false; currentScreen = SCR_MENU;
+        drawMainMenu(); drawMenuGoblinAnim(0);
+      }
+      break;
+
+    // â”€â”€ nRF24 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    case SCR_NRF24:
+      if (animFrame % 2 == 0) animateNRF24(animFrame);
+      processNRF24(tx, ty, touched);
+      if (touched && backTouched(tx, ty)) {
+        radio.stopListening();
+        menuReady = false; currentScreen = SCR_MENU;
+        drawMainMenu(); drawMenuGoblinAnim(0);
+      }
+      break;
+
+    // â”€â”€ IR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    case SCR_IR:
+      if (animFrame % 2 == 0) animateIR(animFrame);
+      processIR(tx, ty, touched);
+      if (touched && backTouched(tx, ty)) {
+        irrecv.disableIRIn();
+        menuReady = false; currentScreen = SCR_MENU;
+        drawMainMenu(); drawMenuGoblinAnim(0);
+      }
+      break;
+
+    default: break;
+  }
+
+  delay(8);
+}
