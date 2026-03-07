@@ -13,7 +13,7 @@ Serve as a research tool for embedded and wireless experimentation
 Think of it as a multi-radio lab bench in your pocket.
 🧠 Core Architecture
 Signal Goblin integrates:
-Raspberry Pi Zero 2 W – Primary compute module
+esp32E n16 – Primary compute module
 CC1101 – Sub-GHz RF (300–928 MHz)
 PN532 – NFC / RFID (13.56 MHz)
 nRF24L01+ – 2.4 GHz communications
@@ -45,7 +45,7 @@ Manufacturing-ready Gerber files are included in this repository.
 
 
 Signal Goblin software includes:
-Linux-based control (Raspberry Pi OS Lite recommended)
+arduino and epstool.py operating system
 Python drivers for SPI-based RF modules
 Signal logging utilities
 CLI-based control interface
