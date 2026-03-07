@@ -66,7 +66,7 @@ Install dependencies
 Run initialization script
 Bash
 Copy code
-git clone https://github.com/YOUR_USERNAME/signal-goblin.git
+git clone https://github.com/evanmypico/signal-goblin.git
 cd signal-goblin
 python3 setup.py
 
