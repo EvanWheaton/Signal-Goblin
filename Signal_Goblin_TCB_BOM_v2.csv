@@ -3,7 +3,7 @@ STM32WB55, U1, STM32WB55CCU6, UFQFPN-48, 1, STMicroelectronics, STM32WB55CCU6, D
 ESP32-C5 Module, U2, ESP32-C5-WROOM-1, SMD Module, 1, Espressif, ESP32-C5-WROOM-1, Wi-Fi 6 (802.11ax) + BLE 5 module with 5GHz support, Handles 5GHz Wi-Fi on right ear antenna
 CC1101, U3, CC1101, QFN-20, 1, Texas Instruments, CC1101RTKR, Low-power Sub-GHz transceiver, Feeds left ear antenna (meandered monopole)
 PN532, U4, PN532, HVQFN-40, 1, NXP, PN5321A3HN/C1, NFC/RFID controller, Placed in forehead for card reading/writing
-3.5" TFT Display, DISP1, ILI9488 320x480 SPI + XPT2046 Touch, Custom, 1, Generic, ILI9488-3.5-SPI-TFT, 3.5 inch SPI TFT touchscreen (resistive), Top of goblin head, requires good power decoupling
+3.5" TFT Display, DISP1, ILI9488 320x480 SPI + XPT2046 Touch, Custom, 1, Generic, ILI9488-3.5-SPI-TFT, 3.5 inch SPI TFT touchscreen (resistive), Top of goblin head, requires good power decoupling),
 MicroSD Card Slot, J1, MicroSD, SMD, 1, Generic, MICROSD-8P-SMD, 4-bit SDIO slot, For storage of captures, animations, firmware
 USB-C Connector, J2, USB-C, SMD, 1, Generic, USB-C-16P-SMD, USB Type-C receptacle, For charging + data + potential BadUSB
 LiPo Battery Connector, J3, JST-PH 2-pin, Through-hole, 1, JST, S2B-PH-K-S, Battery connector, For 3.7V LiPo
