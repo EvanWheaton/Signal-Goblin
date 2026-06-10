@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="300mm" height="200mm" viewBox="0 0 300 200">
+  <!-- Goblin Head Outline for Signal Goblin TCB -->
+  <!-- Main head (roughly oval/rounded rectangle) -->
+  <path d="M 80,30 
+           Q 110,20 150,25 
+           Q 190,20 220,30 
+           Q 235,50 240,90 
+           Q 235,140 220,155 
+           Q 190,165 150,160 
+           Q 110,165 80,155 
+           Q 65,140 60,90 
+           Q 65,50 80,30 Z" 
+        fill="none" stroke="#000000" stroke-width="0.8" />
+  
+  <!-- Left Ear (long pointy) - 72mm scale -->
+  <path d="M 60,70 
+           L 20,55 
+           L 15,95 
+           L 60,110 Z" 
+        fill="none" stroke="#000000" stroke-width="0.8" />
+  
+  <!-- Right Ear (long pointy) -->
+  <path d="M 240,70 
+           L 280,55 
+           L 285,95 
+           L 240,110 Z" 
+        fill="none" stroke="#000000" stroke-width="0.8" />
+  
+  <!-- Center guideline for placement reference -->
+  <line x1="150" y1="30" x2="150" y2="160" stroke="#00AA00" stroke-width="0.3" stroke-dasharray="2,2"/>
+  
+  <!-- Text label -->
+  <text x="150" y="180" font-family="Arial" font-size="8" fill="#333" text-anchor="middle">Signal Goblin TCB - Board Outline (import and scale to ~105mm head width)</text>
+</svg>
