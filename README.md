@@ -13,7 +13,7 @@ Serve as a research tool for embedded and wireless experimentation
 Think of it as a multi-radio lab bench in your pocket.
 🧠 Core Architecture
 Signal Goblin integrates:
-esp32E n16 – Primary compute module
+esp32 c5 N4 AND stm32 wb55u66 as a dual mcu!this will give the gonlin 5 ghz capabilities while the stm32 handles all the other integrations.
 CC1101 – Sub-GHz RF (300–928 MHz)
 PN532 – NFC / RFID (13.56 MHz)
 nRF24L01+ – 2.4 GHz communications
@@ -24,7 +24,7 @@ Optional expansion headers for future modules
 Signal Goblin is designed to experiment with:
 Sub-GHz remote protocols
 NFC / RFID cards and tags
-2.4GHz device communication
+5 & 2.4GHz device communication
 Infrared remote control systems
 Custom digital signal experimentation
 
