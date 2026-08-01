@@ -33,14 +33,24 @@ Custom digital signal experimentation
 
 
 🔌 PCB Design
-The PCB is a custom multi-layer board designed in KiCad.
+The PCB is a custom multi-layer board designed in KiCad, shaped like a goblin's head with long pointy antenna ears.
+
+**Current Version: v6** (Goblin Head Shape with ESP32-C5 5GHz support)
+
 Features include:
-Dedicated RF routing
+Dedicated RF routing for Sub-GHz (CC1101, left ear) and dual-band Wi-Fi (ESP32-C5, right ear)
 SPI bus shared across modules
 Modular headers for stackable radios
 Proper grounding for signal integrity
+Long antenna ears optimized for RF performance
 Compact footprint for portable builds
-Manufacturing-ready Gerber files are included in this repository.
+Manufacturing-ready Gerber files are included in this repository
+
+**PCB v6 Documentation:**
+- [`Signal_Goblin_PCB_v6_Design_Guide.md`](Signal_Goblin_PCB_v6_Design_Guide.md) - Comprehensive layout, RF design rules, and component placement
+- [`Signal_Goblin_PCB_v6_BOM.md`](Signal_Goblin_PCB_v6_BOM.md) - Detailed bill of materials with sourcing information
+- [`Signal_Goblin_PCB_v6_Assembly_Guide.md`](Signal_Goblin_PCB_v6_Assembly_Guide.md) - Step-by-step assembly instructions and troubleshooting
+- [`Signal_Goblin_TCB_BOM_v2.md`](Signal_Goblin_TCB_BOM_v2.md) - Extended BOM with part numbers and alternatives
 💾 Software Stack
 
 
