@@ -1,0 +1,33 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches:
+      - main
+      - repo-improvements
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        compiler: [gcc, clang]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake
+          if [ "${{ matrix.compiler }}" = "clang" ]; then sudo apt-get install -y clang; fi
+      - name: Configure
+        run: |
+          if [ "${{ matrix.compiler }}" = "gcc" ]; then export CC=gcc; export CXX=g++; else export CC=clang; export CXX=clang++; fi
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX
+      - name: Build
+        run: cmake --build build -- -j
+      - name: Run tests
+        run: |
+          if [ -f build/CTestTestfile.cmake ]; then ctest --test-dir build --output-on-failure; else echo "No tests configured."; fi

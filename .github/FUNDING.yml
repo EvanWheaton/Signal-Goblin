@@ -1,0 +1,7 @@
+# GitHub funding configuration
+# This will show a Sponsors/Custom link on the repo page
+custom:
+  - name: "Solana (explorer)"
+    url: "https://explorer.solana.com/address/FHxF59vgtaENSEUHf4Ah7XZfqB1k7KgaM7cJD1ch8c7M"
+  - name: "FUNDING.md"
+    url: "https://github.com/EvanWheaton/Signal-Goblin/blob/funding/signal-goblin/FUNDING.md"
