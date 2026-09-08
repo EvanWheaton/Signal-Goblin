@@ -12,6 +12,6 @@ Use the Rev A documentation instead:
 - `hardware/rev_a/README.md`
 - `hardware/rev_a/bom/Signal_Goblin_Rev_A_BOM.md`
 
-The old guide's STM32WB55CCU6, ESP32-C5-WROOM-1, integrated TFT, legacy pinout, and EasyEDA assumptions are not authoritative for Rev A.
+The old guide contains obsolete MCU, integrated-display, legacy pinout, and EasyEDA assumptions. None are authoritative for Rev A.
 
 Historical content remains available in Git history.
