@@ -1,1 +1,0 @@
-The approved design and initial synchronization changes are prepared for implementation. The implementation branch is based on this branch state.
