@@ -1,84 +1,67 @@
-# Signal-Goblin
-This is a hack tool that I have come up with.Signal Goblin is a modular, multi-protocol RF exploration and signal analysis platform designed for hackers, hardware tinkerers, and wireless researchers.
-Built around compact microcontrollers and stacked RF modules, Signal Goblin is designed to sniff, transmit, emulate, and analyze a wide range of wireless signals — all from a portable, customizable platform.
-👾 What Is Signal Goblin?
-Signal Goblin is a DIY signal toolkit combining multiple wireless technologies into one expandable device.
-It’s designed to:
-Capture and analyze sub-GHz RF signals
-Read and emulate RFID/NFC tags
-Transmit and receive 2.4GHz signals
-Send and decode infrared signals
-Interface with external storage and peripherals
-Serve as a research tool for embedded and wireless experimentation
-Think of it as a multi-radio lab bench in your pocket.
-🧠 Core Architecture
-Signal Goblin integrates:
-esp32E n16 – Primary compute module
-CC1101 – Sub-GHz RF (300–928 MHz)
-PN532 – NFC / RFID (13.56 MHz)
-nRF24L01+ – 2.4 GHz communications
-IR Transmitter + Receiver – Infrared control and decoding
-SD Card Breakout – Data logging and storage
-Optional expansion headers for future modules
-📡 Supported Protocol Areas
-Signal Goblin is designed to experiment with:
-Sub-GHz remote protocols
-NFC / RFID cards and tags
-2.4GHz device communication
-Infrared remote control systems
-Custom digital signal experimentation
+# Signal Goblin
 
+Signal Goblin is a DIY multi-radio hardware platform for authorized wireless experimentation, signal analysis, embedded development, and interoperability testing.
 
-⚠️ This project is intended for educational, defensive, and research purposes only.
+## Rev A architecture
 
+**Primary MCU**
+- ESP32-C5-N8
 
-🔌 PCB Design
-The PCB is a custom multi-layer board designed in KiCad.
-Features include:
-Dedicated RF routing
-SPI bus shared across modules
-Modular headers for stackable radios
-Proper grounding for signal integrity
-Compact footprint for portable builds
-Manufacturing-ready Gerber files are included in this repository.
-💾 Software Stack
+**Secondary MCU**
+- STM32WB55CGU6
 
+**Peripherals**
+- 3.5-inch 320×480 TFT through an FPC connector and ribbon cable
+- CC1101 Sub-GHz transceiver
+- nRF24L01+ 2.4 GHz transceiver
+- PN532 NFC/RFID subsystem
+- IR transmitter + receiver
+- microSD storage
+- USB-C
+- single-cell LiPo power system
 
-Signal Goblin software includes:
-arduino and epstool.py operating system
-Python drivers for SPI-based RF modules
-Signal logging utilities
-CLI-based control interface
-Expandable modular architecture
-Future goals:
-Web-based UI
-Signal database system
-Automated protocol fingerprinting
-Plugin framework
-🛠️ Getting Started
-Flash Raspberry Pi OS to SD card
-Assemble PCB and solder components
-Connect modules via SPI
+KiCad is the authoritative hardware design format.
 
-Clone this repository:
+## Repository layout
 
-Install dependencies
-Run initialization script
-Bash
-Copy code
-git clone https://github.com/evanmipico/signal-goblin.git
-cd signal-goblin
-python3 setup.py
+```text
+Signal-Goblin/
+├── hardware/
+│   └── rev_a/
+├── firmware/
+│   ├── esp32-c5/
+│   └── stm32wb55/
+├── docs/
+│   └── specs/
+└── archive/
+    └── legacy/
+```
 
-🧪 Project Goals
-Create a flexible RF experimentation platform
-Build a hacker-friendly alternative to commercial multi-tools
-Learn deeply about wireless protocols
-Maintain full hardware transparency
-Enable community contributions and module expansion
+See:
 
-🧙 Why “Signal Goblin”?
+- `docs/architecture.md` — authoritative system architecture
+- `docs/pinout.md` — pinout policy and freeze rules
+- `docs/buses.md` — bus ownership
+- `docs/power.md` — power architecture
+- `docs/rf.md` — RF layout and validation requirements
+- `hardware/rev_a/` — Rev A hardware source of truth
+- `firmware/` — MCU-specific firmware
+- `archive/legacy/` — historical designs that are not Rev A
+
+## Hardware status
+
+Rev A is being synchronized around the ESP32-C5-N8 + STM32WB55CGU6 architecture. The exact TFT/FPC assembly must be selected before the final display pinout is frozen. RF antenna matching is likewise validated against the actual PCB stackup and mechanical geometry.
+
+Repository consistency does not equal physical-board validation. KiCad ERC/DRC, schematic-to-PCB checks, manufacturing review, and hardware bring-up are separate verification gates.
+
+## Safety and authorized use
+
+Signal Goblin is intended for educational, defensive, diagnostic, interoperability, and research use on systems, radios, tags, and remotes the operator owns or is authorized to test. Do not use it for unauthorized access, credential theft, payment-card cloning, disruption, or jamming.
+
+## Why Signal Goblin?
+
 Because it lurks in the spectrum.
-Sniffing.
-Listening.
-Mischievous, but brilliant. 
+
+Sniffing. Listening. Experimenting.
+
+Mischievous, but brilliant.
