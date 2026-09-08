@@ -1,0 +1,18 @@
+Reference,Function,Rev_A_Definition,Status
+U1,Primary MCU,ESP32-C5-N8,Locked architecture
+U2,Secondary MCU,STM32WB55CGU6 UFQFPN-48,Locked architecture
+U3,Sub-GHz radio,CC1101,Locked architecture
+U4,2.4 GHz radio,nRF24L01+,Locked architecture
+U5,NFC/RFID,PN532,Locked architecture
+DISP1,TFT,3.5-inch 320x480 external display,Exact part pending selection
+J_DISP,Display connector,FPC connector matched to DISP1 ribbon,Exact part pending display selection
+J_SD,Storage,microSD socket,Required
+J_USB,USB,USB-C receptacle,Required
+BAT1,Battery,1-cell LiPo,Required
+U_PWR,Main regulator,Single selected 3.3 V regulator sized for Rev A load,Exact production part pending final load analysis
+U_CHG,Charger/protection,Single selected LiPo charger/protection implementation,Exact production part pending final power review
+IR_TX,Infrared,940 nm-class IR emitter and driver,Required
+IR_RX,Infrared,38 kHz-class IR receiver or selected equivalent,Required
+J_DBG,Debug,STM32 SWD plus ESP32 programming access,Required
+TP_*,Test points,Rails reset inter-MCU UART and key buses as required,Required
+RF_MATCH_*,RF matching,DNP/tunable matching footprints as required,Values validation-dependent
