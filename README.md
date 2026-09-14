@@ -1,10 +1,10 @@
 # Signal-Goblin
 This is a hack tool that I have come up with.Signal Goblin is a modular, multi-protocol RF exploration and signal analysis platform designed for hackers, hardware tinkerers, and wireless researchers.
-Built around compact microcontrollers and stacked RF modules, Signal Goblin is designed to sniff, transmit, emulate, and analyze a wide range of wireless signals — all from a portable, customizable platform.
+Built around dual microcontrollers and stacked RF modules, Signal Goblin is designed to sniff, transmit, emulate, and analyze a wide range of wireless signals — all from a portable, customizable platform.
 👾 What Is Signal Goblin?
 Signal Goblin is a DIY signal toolkit combining multiple wireless technologies into one expandable device.
 It’s designed to:
-Capture and analyze sub-GHz RF signals
+Capture and analyze 5ghz, sub-GHz RF signals
 Read and emulate RFID/NFC tags
 Transmit and receive 2.4GHz signals
 Send and decode infrared signals
@@ -13,7 +13,7 @@ Serve as a research tool for embedded and wireless experimentation
 Think of it as a multi-radio lab bench in your pocket.
 🧠 Core Architecture
 Signal Goblin integrates:
-esp32E n16 – Primary compute module
+esp32 c5 n16r8 and a stm32 wb55cgu6 as the two Primary compute modules.
 CC1101 – Sub-GHz RF (300–928 MHz)
 PN532 – NFC / RFID (13.56 MHz)
 nRF24L01+ – 2.4 GHz communications
@@ -25,8 +25,9 @@ Signal Goblin is designed to experiment with:
 Sub-GHz remote protocols
 NFC / RFID cards and tags
 2.4GHz device communication
-Infrared remote control systems
+Infrared remote control systems and will all be displayed on a tft_esp spi 3.5” touchscreen ili9488 display. 
 Custom digital signal experimentation
+The custom firmware will run a lot like a flipper zero but will be one step above. there will be a menu/ user interface, a signal goblin OS to build your own custom packets. and it will include games for each menu option so it makes it fun while you hack the world!!!
 
 
 ⚠️ This project is intended for educational, defensive, and research purposes only.
@@ -56,7 +57,7 @@ Signal database system
 Automated protocol fingerprinting
 Plugin framework
 🛠️ Getting Started
-Flash Raspberry Pi OS to SD card
+Flash the esp32 c5 and the stm32 with the uart_bridge.ccp I have created. 
 Assemble PCB and solder components
 Connect modules via SPI
 
