@@ -1,84 +1,70 @@
-# Signal-Goblin
-This is a hack tool that I have come up with.Signal Goblin is a modular, multi-protocol RF exploration and signal analysis platform designed for hackers, hardware tinkerers, and wireless researchers.
-Built around compact microcontrollers and stacked RF modules, Signal Goblin is designed to sniff, transmit, emulate, and analyze a wide range of wireless signals — all from a portable, customizable platform.
-👾 What Is Signal Goblin?
-Signal Goblin is a DIY signal toolkit combining multiple wireless technologies into one expandable device.
-It’s designed to:
-Capture and analyze sub-GHz RF signals
-Read and emulate RFID/NFC tags
-Transmit and receive 2.4GHz signals
-Send and decode infrared signals
-Interface with external storage and peripherals
-Serve as a research tool for embedded and wireless experimentation
-Think of it as a multi-radio lab bench in your pocket.
-🧠 Core Architecture
-Signal Goblin integrates:
-esp32E n16 – Primary compute module
-CC1101 – Sub-GHz RF (300–928 MHz)
-PN532 – NFC / RFID (13.56 MHz)
-nRF24L01+ – 2.4 GHz communications
-IR Transmitter + Receiver – Infrared control and decoding
-SD Card Breakout – Data logging and storage
-Optional expansion headers for future modules
-📡 Supported Protocol Areas
-Signal Goblin is designed to experiment with:
-Sub-GHz remote protocols
-NFC / RFID cards and tags
-2.4GHz device communication
-Infrared remote control systems
-Custom digital signal experimentation
+# Signal Goblin
 
+Signal Goblin is a modular, portable RF and wireless experimentation platform built around custom hardware. The project combines multiple radios and peripherals into one handheld device for embedded development, wireless research, signal analysis, and defensive security experimentation.
 
-⚠️ This project is intended for educational, defensive, and research purposes only.
+## Current Rev A Architecture
 
+Signal Goblin Rev A is built around a **dual-MCU architecture**:
 
-🔌 PCB Design
-The PCB is a custom multi-layer board designed in KiCad.
-Features include:
-Dedicated RF routing
-SPI bus shared across modules
-Modular headers for stackable radios
-Proper grounding for signal integrity
-Compact footprint for portable builds
-Manufacturing-ready Gerber files are included in this repository.
-💾 Software Stack
+- **ESP32-C5-N8** — Wi-Fi 6 / 5 GHz wireless processing, application coordination, and high-level UI/control
+- **STM32WB55** — dedicated wireless/embedded controller for low-power processing and Bluetooth LE / 802.15.4-class wireless functions
+- **3.5-inch 320×480 IPS TFT** — 40-pin FPC/ribbon display interface
+- **CC1101** — sub-GHz RF transceiver
+- **PN532** — NFC/RFID interface at 13.56 MHz
+- **IR transmitter + receiver** — infrared transmit/receive functions
+- **Micro-SD** — signal captures, logs, configuration, and data storage
+- **Buzzer + four buttons** — local feedback and physical controls
+- **USB-C power/charging subsystem**
+- **Goblin-head PCB** — the final board concept uses the ears as antenna structures where electrically appropriate
 
+The two MCUs communicate through a dedicated UART bridge. The repository's current bridge implementation is explicitly designed for **STM32WB55 ↔ ESP32-C5** communication.
 
-Signal Goblin software includes:
-arduino and epstool.py operating system
-Python drivers for SPI-based RF modules
-Signal logging utilities
-CLI-based control interface
-Expandable modular architecture
-Future goals:
-Web-based UI
-Signal database system
-Automated protocol fingerprinting
-Plugin framework
-🛠️ Getting Started
-Flash Raspberry Pi OS to SD card
-Assemble PCB and solder components
-Connect modules via SPI
+## Design Goals
 
-Clone this repository:
+Signal Goblin is intended to provide a hacker-friendly, transparent hardware platform for:
 
-Install dependencies
-Run initialization script
-Bash
-Copy code
-git clone https://github.com/evanmipico/signal-goblin.git
-cd signal-goblin
-python3 setup.py
+- Sub-GHz RF experimentation with the CC1101
+- NFC/RFID experimentation with the PN532
+- 5 GHz / Wi-Fi experimentation using the ESP32-C5
+- Bluetooth LE and 802.15.4 experimentation using the STM32WB55
+- Infrared signal capture and transmission
+- Signal logging and portable data collection
+- Embedded firmware development
+- Hardware and wireless protocol research
 
-🧪 Project Goals
-Create a flexible RF experimentation platform
-Build a hacker-friendly alternative to commercial multi-tools
-Learn deeply about wireless protocols
-Maintain full hardware transparency
-Enable community contributions and module expansion
+The software direction is inspired by the flexibility of devices such as Flipper Zero and Bruce, while remaining a purpose-built Signal Goblin platform rather than a clone of either project.
 
-🧙 Why “Signal Goblin”?
+## Hardware Development
+
+The hardware is being developed in **KiCad** as a custom Rev A PCB. Source design files are preferred over generated manufacturing artifacts so the design remains editable and reviewable.
+
+The Rev A development priorities are:
+
+1. Lock the ESP32-C5-N8 + STM32WB55 electrical architecture
+2. Complete the hierarchical schematic and verified net/pin map
+3. Integrate the 3.5-inch 40-pin FPC display interface
+4. Integrate CC1101, PN532, IR, SD, controls, and power
+5. Complete RF placement, grounding, antenna, and impedance considerations
+6. Verify the PCB before generating a manufacturing release
+
+## Firmware
+
+Firmware is being organized around the dual-MCU architecture rather than the retired ESP32-only prototype.
+
+The current software architecture uses the ESP32-C5 and STM32WB55 as cooperating controllers, with a defined UART bridge for commands and data exchange.
+
+## Repository Policy
+
+The repository keeps **editable source and current design documentation** as the authoritative project artifacts.
+
+Generated Gerbers, drill files, STL exports, old PCB ZIPs, obsolete BOM snapshots, and retired architecture prototypes are removed from the active tree when they are no longer part of the current Rev A design. Git history remains available for historical reference.
+
+## Safety and Use
+
+Signal Goblin is intended for educational, defensive, authorized security research, embedded development, and wireless experimentation. Only test systems and signals you own or are explicitly authorized to analyze or control.
+
+## Name
+
 Because it lurks in the spectrum.
-Sniffing.
-Listening.
-Mischievous, but brilliant. 
+
+**Sniffing. Listening. Building. Mischievous, but brilliant.**
