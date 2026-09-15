@@ -9,7 +9,7 @@
 1. `01_POWER` — LiPo, TP4056, 3V3 buck-boost, analog/USB/RF supply branches, decoupling
 2. `02_STM32_CORE` — STM32WB55CCU6, NRST, BOOT0, SWD, VDD/VBAT/VDDA, exposed-pad GND
 3. `03_CLOCKS_RF` — 32 MHz HSE, 32.768 kHz LSE, STM32 RF matching/antenna interface, SMPS network
-4. `04_ESP32_LINK` — ESP32-C5-WROOM-1, 3V3 decoupling, STM32 USART1 link at 921600 8N1
+4. `04_ESP32_LINK` — ESP32-C5-WROOM-1, reset/boot straps, 3V3 decoupling, STM32 USART1 link at 921600 8N1
 5. `05_CC1101` — CC1101 SPI/GDO interface and RF matching network
 6. `06_PN532` — PN532 I2C + IRQ and local decoupling
 7. `07_DISPLAY_STORAGE` — ILI9488 TFT SPI, TFT reset/DC/CS, microSD shared SPI
@@ -97,13 +97,66 @@ Touch-controller pins are intentionally **not locked** until the exact ILI9488/X
 - IRQ: PA1
 - Add local supply decoupling and I2C pull-ups appropriate to the selected PN532 operating voltage.
 
-## ESP32-C5 link
+## ESP32-C5 link — RESET AND BOOT LOCK
 
-- STM32 PA9 (`USART1_TX`) -> ESP32-C5 RX
-- STM32 PA10 (`USART1_RX`) <- ESP32-C5 TX
+The ESP32-C5 section is now locked to the verified ESP32-C5 hardware-design guidance for CHIP_PU/reset and boot strapping.
+
+### UART link
+
+- STM32 PA9 (`USART1_TX`) -> ESP32-C5 application RX
+- STM32 PA10 (`USART1_RX`) <- ESP32-C5 application TX
 - UART: 921600 baud, 8-N-1
 - Common 3.3 V logic domain
-- Place 22 uF + 10 uF + multiple 100 nF local bypass capacitors at the ESP32-C5 module supply, plus additional RF-area bypass as required by the module reference design.
+
+### CHIP_PU / EN reset circuit
+
+Use the ESP32-C5 `CHIP_PU`/EN pin as the module enable/reset input:
+
+- `EN` -> `R_EN = 10 kOhm` -> `3V3`
+- `EN` -> `C_EN = 1 uF` -> `GND`
+- momentary `RESET_ESP` pushbutton: `EN` -> switch -> `GND`
+- keep the EN/CHIP_PU trace short and away from noisy switching/RF traces
+
+This 10 kOhm + 1 uF RC is the Espressif-recommended starting point for ESP32-C5 power-up/reset timing. The design should reserve the ability to tune the RC if the final power tree or reset behavior requires it.
+
+### Boot strapping
+
+ESP32-C5 uses GPIO26, GPIO27 and GPIO28 as boot-mode strapping inputs. For normal SPI flash boot, GPIO28 must be high at reset; GPIO27 is irrelevant to normal SPI boot. Espressif recommends a pull-up at GPIO28.
+
+Locked normal-boot baseline:
+
+- `GPIO28` -> `R_BOOT28 = 10 kOhm` -> `3V3`
+- `GPIO27` -> no external forced level required for normal SPI boot; its internal/default pull-up is acceptable
+- `GPIO26` -> no external forced level required for normal SPI boot
+- expose a `BOOT_ESP` test pad on GPIO28
+- reserve a momentary `BOOT_ESP` switch footprint that can pull GPIO28 to GND for download mode
+
+For UART download mode, hold GPIO28 low while GPIO27 is high, then reset/release EN. This selects the ESP32-C5 Joint Download Boot 0 path. Do not hard-wire GPIO27 low together with GPIO28 low because that combination selects a different download configuration and is not the intended default path here.
+
+Do not install a large capacitor on GPIO28. Espressif specifically recommends leaving capacitor footprint provision for tuning but initially leaving it unpopulated because excess capacitance can cause unintended download mode.
+
+### Automatic download-mode provision
+
+The v1 hardware does **not** require a dedicated USB-UART auto-reset circuit. Manual download control is provided through `BOOT_ESP` (GPIO28) and `RESET_ESP` (EN).
+
+Reserve optional pads for future automatic-reset control:
+
+- `ESP_EN_CTRL` -> EN
+- `ESP_BOOT_CTRL` -> GPIO28
+
+If a USB-UART bridge with DTR/RTS is added later, its reset circuit can map RTS -> EN and DTR -> GPIO28 using the standard ESP32-C5 bootloader arrangement.
+
+### ESP32-C5 local power / bypass
+
+Keep the existing project baseline of:
+
+- 22 uF bulk/local capacitance
+- 10 uF local capacitance
+- multiple 100 nF bypass capacitors
+
+The ESP32-C5 hardware guidelines additionally call for adequate 3.3 V supply capability and local digital/analog decoupling. The exact module reference layout remains the authority for module-specific RF and supply placement.
+
+**Important correction:** ESP32-C5 requires a 48 MHz external crystal for the chip design. The previously discussed external 32 MHz crystal must not be used for the ESP32-C5 clock. If the selected WROOM-1 module integrates the required crystal, follow the exact module datasheet/reference schematic and do not add a second external crystal. If the selected module does not integrate it, the required 48 MHz crystal circuit must be added.
 
 ## Display / storage
 
@@ -169,7 +222,7 @@ SWD:
 1. Power and grounds
 2. STM32 core + decoupling
 3. clocks + STM32 RF + SMPS reference circuits
-4. ESP32-C5 + UART
+4. ESP32-C5 + reset/boot straps + UART
 5. CC1101 + matching
 6. PN532
 7. TFT + microSD
@@ -185,6 +238,7 @@ Do not move to PCB routing until:
 - no two peripherals unintentionally share a chip-select;
 - exact TFT/touch connector pinout is confirmed;
 - CC1101 and STM32 RF networks are sourced from manufacturer reference designs;
-- ESP32-C5 RF/antenna requirements are checked against the exact module variant;
+- exact ESP32-C5-WROOM-1 variant/module crystal, flash/PSRAM, RF, and antenna requirements are checked;
+- ESP32-C5 EN/CHIP_PU reset circuit and GPIO26/27/28 strap network are verified;
 - USB ESD/CC/power wiring is checked;
 - ERC has no unexplained power or unconnected-pin errors.
