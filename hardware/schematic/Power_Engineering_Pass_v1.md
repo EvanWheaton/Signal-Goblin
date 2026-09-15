@@ -1,139 +1,165 @@
 # Signal Goblin — Power Engineering Pass v1
 
 **Branch:** `schematic/v2-corrected`
-**Status:** engineering capture baseline; not yet fabrication release
+**Status:** engineering capture baseline; charger/protection BOM locked, fabrication release pending final net-level verification
 
 ## 1. Objective
 
-Lock the first-pass power architecture and identify component/value decisions that are supported by the available project BOM and manufacturer documentation.
+Lock the Signal Goblin battery charger, protection, load-sharing front end, and 3.3 V power architecture using the exact charger-board BOM supplied for this design.
 
 ## 2. Top-level power tree
 
 ```text
-LiPo battery (1S, nominal 3.7 V)
-        |
-        +--> TP4056 charger / battery-management stage
-        |
-        +--> BATT+
-               |
-               +--> TPS63020 buck-boost
-                        |
-                        +--> +3V3 main rail
-                              |
-                              +--> STM32WB55 VDD / VBAT / VDDA / VDDUSB
-                              +--> ESP32-C5-WROOM-1
-                              +--> CC1101 / PN532 / TFT / microSD / logic
+USB-C
+  |
+  +--> TP4056 charger / load-share / protection stage
+          |
+          +--> BAT connector / protected 1S LiPo
+          |
+          +--> VOUT
+                 |
+                 +--> TPS63020 buck-boost
+                          |
+                          +--> +3V3 main rail
+                                +--> STM32WB55
+                                +--> ESP32-C5-WROOM-1
+                                +--> CC1101 / PN532 / TFT / microSD / logic
 ```
 
-The existing BOM identifies TP4056 as the charger and TPS63020DSJR as the main 3.3 V regulator. The BOM also lists an optional TPS73633 clean rail, but this is not yet committed to the schematic.
+The external charger/protection stage is now defined by the exact BOM supplied by the user. `VOUT` is the system-side output of that stage and is the intended source for the TPS63020 input. Do not duplicate the board's battery/load-share switching circuit elsewhere in the design.
 
-## 3. TPS63020
+## 3. Exact charger/protection BOM — LOCKED
 
-The BOM currently specifies:
+| Ref | Value / Part | Footprint | Qty | Function |
+|---|---|---|---:|---|
+| C1, C3 | 100 nF | C_0603 | 2 | Local bypass/filtering |
+| C2 | 10 uF | C_0603 | 1 | Charger/input filtering |
+| D1 | SS34 | DIODE-SMA(DO-214AC) | 1 | Load-sharing power path |
+| H1 | VIN | HDR-1X2/2.54 | 1 | VIN connector |
+| H2 | BAT | HDR-1X2/2.54 | 1 | Battery connector |
+| H3 | VOUT | HDR-1X2/2.54 | 1 | System/load output |
+| LED1 | CHRG | LED_0603 | 1 | Charge indicator |
+| LED2 | DONE | LED_0603 | 1 | Charge-complete indicator |
+| Q1 | FS8205 | SOT-23-6 | 1 | Dual protection MOSFET |
+| Q2 | DMP1045U-7 | SOT-23-3_L2.9-W1.3-P1.90-LS2.4-BR | 1 | Load-sharing MOSFET |
+| R1, R2, R4 | 1 kOhm | 0603 | 3 | Charger/indicator network |
+| R3 | 1.2 kOhm | 0603 | 1 | TP4056 PROG resistor |
+| R5 | 100 Ohm | 0603 | 1 | Control network |
+| R6 | 10 kOhm | 0603 | 1 | Load-sharing control |
+| R7, R8 | 5.1 kOhm | 0603 | 2 | USB-C CC pull-downs |
+| U1 | TP4056 | SOP-8_EP_150MIL | 1 | 1-cell Li-ion/LiPo charger |
+| U2 | DW01A | SOT-23-6 | 1 | Battery protection controller |
+| USB | USB-TYPE-C-6PIN | USB-C-SMD-6P | 1 | USB-C input |
 
-- U6: `TPS63020DSJR`
-- L5: `2.2 uH`
-- C36-C38: `4.7 uF` class capacitors available for power filtering
+**Important:** this table locks the parts and values supplied by the user. It does not by itself prove the exact PCB module's net topology. The final schematic must preserve the actual TP4056/DW01A/FS8205/DMP1045U-7/SS34 topology of the intended board.
 
-TI's current product documentation confirms TPS63020 is a buck-boost converter intended for a single-cell Li-ion/Li-polymer supply, with 1.8 V to 5.5 V input and a 3.3 V output capability. TI specifies up to 2 A output at 3.3 V when VIN > 2.5 V. The converter operates at 2.4 MHz. The final inductor/input/output capacitor values and layout must be taken from the TPS63020 datasheet/reference design rather than inferred from the BOM alone.
+## 4. Charger/protection behavior
 
-**Capture rule:** keep the high-current input capacitor -> IC -> inductor -> output capacitor loop physically compact. Keep the SW node copper small and away from RF/ADC/clock traces.
+The intended stage combines:
 
-## 4. STM32WB55 power connections
+- U1 TP4056 for single-cell charging.
+- U2 DW01A for battery overcharge, overdischarge, overcurrent and short-circuit protection.
+- Q1 FS8205 dual MOSFET as the protection disconnect device.
+- Q2 DMP1045U-7, D1 SS34 and R6 as the load-sharing/power-path section.
+- H2 as the battery connection.
+- H3 as the system-side VOUT connection.
 
-From the current STM32WB55 UFQFPN-48 allocation:
+When external USB power is present, the load-sharing section is intended to power the system from the external source while the battery is charged rather than continuously loading the battery.
 
-| STM32 pin | Pad | Net | Capture requirement |
-|---:|---|---|---|
-| 1 | VBAT | `3V3` | First-revision strategy ties VBAT to 3V3 |
-| 8 | VDDA | `3V3_A` | Clean analog supply + local ceramic decoupling |
-| 20 | VDD | `3V3` | Local decoupling |
-| 23 | VDDRF | `RF_3V3` | Follow ST RF/power reference |
-| 31 | VFBSMPS | `SMPS_FB` | ST SMPS feedback network |
-| 32 | VSSSMPS | GND | Ground |
-| 33 | VLXSMPS | `SMPS_LX` | ST SMPS inductor/switch node |
-| 34 | VDDSMPS | `SMPS_IN` | Supply input to internal SMPS |
-| 35 | VDD | `3V3` | Local decoupling |
-| 40 | VDDUSB | `3V3_USB` | USB supply |
-| 48 | VDD | `3V3` | Local decoupling |
-| 22 | VSSRF | GND | RF ground |
-| EP | exposed pad | GND | Solder to ground plane |
+## 5. USB-C input
 
-The STM32 datasheet states that VDD, VDDRF and VDDSMPS must be wired together for the SMPS configuration. The final schematic therefore needs to distinguish **the electrical common rail** from the physical placement/filtering strategy.
+USB-C is represented by the 6-pin USB-C-SMD-6P footprint in the supplied BOM.
 
-## 5. STM32 internal SMPS
+R7 and R8 are locked at 5.1 kOhm for the USB-C CC pull-down network. The USB-C input is the source for the TP4056 charging stage.
 
-The STM32 datasheet's typical component table specifies:
+Final schematic capture must explicitly connect both CC pins and both USB 5 V / ground contact groups according to the selected 6-pin connector symbol/footprint.
 
-- SMPS output capacitor: `4.7 uF`
-- Inductor: `2.2 uH` for the 8 MHz SMPS configuration
-- Inductor: `10 uH` for the 4 MHz configuration
+## 6. TP4056 charge-current setting
 
-The schematic must select the intended SMPS operating frequency and then use the corresponding ST-recommended network. Do not substitute the TPS63020 inductor for the STM32 internal SMPS inductor; they are separate power circuits.
+R3 is locked at 1.2 kOhm as supplied in the BOM.
 
-The STM32 datasheet also shows local high-frequency/rail decoupling around the supply domains. Components must be placed as close as practical to the corresponding MCU supply pins.
+The schematic should retain `R3 = 1.2 kOhm` rather than substituting a value from a generic TP4056 module. The resulting charge-current target should be checked against the exact TP4056 variant and the intended battery capacity before production release.
 
-## 6. ESP32-C5-WROOM-1 power
+## 7. System output
 
-The supplied ESP32-C5-WROOM-1 datasheet identifies:
-
-- Module pin 1: GND
-- Module pin 2: 3V3 supply
-- Module pin 3: EN
-- EN must not be left floating
-
-The module operates from a 3.0 V to 3.6 V supply.
-
-The current project BOM calls for 22 uF + 10 uF + multiple 100 nF local bypass capacitors around the ESP32-C5 module. Keep that as the capture baseline until the exact Espressif hardware-design recommendation is incorporated.
-
-**Important correction:** the existing BOM line for `32MHz Crystal` describes it as the ESP32-C5 main system clock. The supplied WROOM module documentation does not support treating an external 32 MHz crystal as a module-level requirement. The WROOM module already integrates the ESP32-C5 circuitry and its required crystal resources. Therefore **X2 must not be automatically placed on the Signal Goblin schematic**. Mark it `REVIEW/REMOVE` unless another subsystem specifically requires that crystal.
-
-## 7. ESP32-C5 UART link
-
-The STM32 allocation defines:
+The charger/protection board's `VOUT` connector H3 is the system power output for Signal Goblin.
 
 ```text
-STM32 PA9  -> ESP32-C5 RX
-STM32 PA10 <- ESP32-C5 TX
+H3 VOUT+
+   |
+   +--> TPS63020 VIN
+
+H3 VOUT-
+   |
+   +--> system GND
 ```
 
-The project baseline is USART1 at 921600 baud, 8-N-1, no flow control initially.
+The TPS63020 then generates the regulated `3V3` rail.
 
-The supplied ESP32-C5 module pin table identifies module RX0 as U0RXD/GPIO12 and TX0 as U0TXD/GPIO11. Final schematic capture must connect the selected ESP32 UART pins explicitly and provide a deterministic boot/reset strategy around EN and any GPIO strapping requirements used by firmware.
+## 8. TPS63020
 
-## 8. Optional clean rail
+The main regulator remains:
 
-The BOM lists `TPS73633` as an optional 3.3 V LDO for sensitive analog/RF loads. TI's current catalog lists the TPS736 family as a 400 mA LDO family. The exact TPS73633 variant and its suitability for this design are not yet locked.
+- U6: `TPS63020DSJR`
+- output: `3V3`
+- input: charger-board `VOUT`
 
-**Decision:** do not place U8 in the fabrication schematic yet. First determine the actual current budget and noise sensitivity for CC1101, PN532 and the STM32 RF supply, then decide whether a filtered branch from the main 3V3 rail is sufficient or whether a dedicated LDO is justified.
+The previously selected TI reference configuration remains the engineering target: 1.5 uH inductor, 2 x 10 uF input ceramic, 3 x 22 uF output ceramic, 100 nF bypass, 1 MOhm / 180 kOhm feedback divider, and 1 MOhm PG pull-up, subject to final capture against the selected TI datasheet revision.
 
-## 9. Battery/charger architecture review items
+Keep the high-current input-capacitor -> IC -> inductor -> output-capacitor loop compact. Keep the SW node small and away from RF, clocks and ADC traces.
 
-The BOM currently uses TP4056 and describes a 500 mA charge configuration. Before PCB release, verify:
+## 9. STM32WB55 power connections
 
-1. The exact TP4056 implementation/package being sourced.
-2. Battery protection strategy. A charger IC alone is not equivalent to a protected battery pack.
-3. Charge-current programming resistor.
-4. Power-path behavior while USB power and battery are connected simultaneously.
-5. Battery connector polarity and reverse-protection strategy.
-6. Undervoltage/overdischarge behavior of the system load.
+| STM32 pin | Pad | Net |
+|---:|---|---|
+| 1 | VBAT | `3V3` |
+| 8 | VDDA | `3V3_A` |
+| 20 | VDD | `3V3` |
+| 22 | VSSRF | GND |
+| 23 | VDDRF | `RF_3V3` |
+| 31 | VFBSMPS | `SMPS_FB` |
+| 32 | VSSSMPS | GND |
+| 33 | VLXSMPS | `SMPS_LX` |
+| 34 | VDDSMPS | `SMPS_IN` |
+| 35 | VDD | `3V3` |
+| 40 | VDDUSB | `3V3_USB` |
+| 48 | VDD | `3V3` |
+| EP | exposed pad | GND |
 
-These items are not sufficiently specified by the current BOM alone, so they remain open rather than being guessed.
+The STM32 internal SMPS remains a separate circuit from the TPS63020 and must use the selected ST reference configuration.
 
-## 10. First-pass placement rules
+## 10. STM32 internal SMPS
 
-- Put TP4056 and its battery/USB charge components near the USB-C/battery power entry.
-- Put TPS63020, L5 and its input/output capacitors in a compact switching-power cluster.
-- Keep the TPS63020 SW node away from the STM32 RF path, CC1101 RF path, crystal traces and joystick ADC.
-- Keep a continuous ground plane beneath normal digital/power circuitry.
-- Keep RF antenna keep-outs and RF matching areas compliant with the respective manufacturer reference layouts.
-- Put STM32 decouplers immediately adjacent to the MCU supply pins.
-- Put ESP32-C5 local bulk and high-frequency bypass capacitors adjacent to its module supply pins.
+For the selected 8 MHz SMPS configuration:
 
-## 11. Power bring-up test points
+- SMPS output capacitor: `4.7 uF`
+- SMPS inductor: `2.2 uH`
+- VSSSMPS -> GND
+- keep the SMPS loop physically compact.
+
+Do not substitute the TPS63020 inductor for the STM32 internal SMPS inductor.
+
+## 11. ESP32-C5 power
+
+The ESP32-C5-WROOM-1 remains powered from `3V3`.
+
+The current project baseline retains:
+
+- 22 uF bulk/local capacitance
+- 10 uF local capacitance
+- multiple 100 nF bypass capacitors
+
+The external 32 MHz crystal previously associated with the module is not automatically placed unless a separate subsystem requirement is identified.
+
+## 12. Optional TPS73633
+
+`TPS73633` remains uncommitted. It is not required for this power lock. Add it only if later current/noise measurements justify a dedicated clean branch for a sensitive load.
+
+## 13. Power test points
 
 Reserve test points for:
 
+- `VOUT`
 - `BATT+`
 - `3V3`
 - `3V3_A`
@@ -142,17 +168,31 @@ Reserve test points for:
 - `GND`
 - `RESET_N`
 - `BOOT0`
-- `SMPS_LX` **do not expose as a user probe pad unless required; keep the switching node physically compact**
 
-## 12. Gate before schematic release
+Do not expose `SMPS_LX` as a normal user test point.
 
-Power is ready to move from engineering notes to final KiCad capture only after:
+## 14. PCB placement rules
 
-- TPS63020 reference network is copied from the selected TI datasheet revision.
-- STM32 internal SMPS network is captured from the ST reference configuration.
-- STM32 supply decoupling is fully assigned.
-- ESP32-C5 EN/reset behavior is defined.
-- TP4056 charge/power-path/protection behavior is defined.
-- Battery connector polarity is verified.
-- Optional TPS73633 branch is either justified and specified or removed.
-- X2 is removed unless an actual subsystem requirement is identified.
+- Place the USB-C/TP4056/protection/load-share circuitry together at the power-entry edge.
+- Keep the battery and VOUT current paths short and appropriately wide.
+- Place the TPS63020, its inductor and capacitors as a compact switching-power cluster.
+- Keep switching nodes away from the STM32/ESP32 RF areas, CC1101 RF path, crystals and joystick ADC.
+- Use a continuous ground plane wherever RF/thermal/layout constraints permit.
+- Keep RF matching and antenna keep-outs compliant with the respective manufacturer reference layouts.
+
+## 15. Remaining release gates
+
+The charger/protection **BOM is locked**. Before fabrication release, verify:
+
+1. Exact TP4056 symbol pin mapping against the selected device.
+2. Exact DW01A/FS8205 protection topology.
+3. Exact DMP1045U-7 / SS34 load-sharing topology.
+4. USB-C connector pin mapping and CC connections.
+5. H2 battery polarity.
+6. H3 VOUT polarity.
+7. TP4056 thermal/charge-current limits for the intended battery.
+8. TPS63020 final reference network.
+9. STM32 internal SMPS reference network.
+10. Full ERC and power-net verification.
+
+No topology should be guessed solely from the BOM.
